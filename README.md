@@ -1,2 +1,2 @@
 # Other_python
-主要是一些python可以使用到的功能
+python实现的一些实用的功能
