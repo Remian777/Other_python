@@ -1,0 +1,54 @@
+import time
+import tkinter as tk
+from tkinter import ttk
+from ttkbootstrap import Style
+
+def update_progress(progressbar, label, value):
+    progressbar['value'] = value
+    label.config(text=f'{value:.0f}%')
+
+def simulate_task(progressbar, label):
+    total_steps = 100
+    for step in range(total_steps + 1):
+        # 更新进度条和标签文本
+        update_progress(progressbar, label, step)
+        
+        # 模拟耗时任务
+        root.update()  # 更新窗口显示
+        time.sleep(0.05)
+
+def main():
+    global root  # 在其他函数中引用 root
+
+    # 创建 Tkinter 应用程序窗口
+    root = tk.Tk()
+    style = Style()
+    
+    # 设置主题
+    style.theme_use('flatly')
+
+    # 自定义含有 Stripe（斑马线）样式的进度条
+    style.configure('Striped.Horizontal.TProgressbar',
+                    troughcolor='white',
+                    background='navy',
+                    stripesbackground='lightblue',
+                    stripeswidth=30,
+                    stripestoincrements=True)
+
+    # 创建 Label 用于显示百分比进度
+    progress_label = tk.Label(root, text="0%")
+    progress_label.pack(pady=(20, 0))
+
+    # 创建进度条
+    progressbar = ttk.Progressbar(root, mode='determinate', length=300,
+                                  style='Striped.Horizontal.TProgressbar')
+    progressbar.pack(pady=20)
+
+    # 模拟任务进程
+    simulate_task(progressbar, progress_label)
+
+    # 运行应用程序
+    root.mainloop()
+
+if __name__ == '__main__':
+    main()
