@@ -1,0 +1,13 @@
+def openCameraP(id,username,macaddr):
+    r_num = 8
+    tokens = ''.join(random.sample(string.digits,r_num))
+    lkapi.integrate_getToken_sendMasseg(id,"机器人开始执行，正在拍照",1)
+    cap = cv2.VideoCapture(0,cv2.CAP_DSHOW)           # 开启摄像头
+    f, frame = cap.read()               # 将摄像头中的一帧图片数据保存
+    cv2.imwrite(fr"{savePath}\photo_{tokens}.jpg", frame)     # 将图片保存为本地文件
+    cap.release()
+    ali = RPA_api.AliyunOss()
+    # 获取6位随机数
+    resimagepath = ali.put_object_from_file(f"photo_{tokens}.jpg",fr'{savePath}\photo_{tokens}.jpg')
+
+    lkapi.integrate_getToken_sendMasseg(id,resimagepath,2)
