@@ -1,0 +1,41 @@
+import win32com.client
+import time
+
+scheduler = win32com.client.Dispatch('Schedule.Service')
+scheduler.Connect()
+
+folder = scheduler.GetFolder('\\')
+
+tasks = folder.GetTasks(0)
+
+rpa_task_exists = False
+
+for task in tasks:
+    if task.Name.lower() == 'rpaserver':
+        rpa_task_exists = True
+        break
+
+if not rpa_task_exists:
+    # 创建一个新的任务定义对象
+    task_def = scheduler.NewTask(0)
+
+    # 设置任务的说明
+    task_def.RegistrationInfo.Description = 'RPAserver'
+
+    # 启用任务
+    task_def.Settings.Enabled = True
+
+    # 创建一个时间触发器（每 5 分钟执行一次）
+    task_trigger = task_def.Triggers.Create(2)
+    task_trigger.StartBoundary = current_time = time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime())    # 触发器开始时间
+    task_trigger.Duration = 'PT0S'     
+    task_trigger.MinutesInterval = 5                      # 触发器间隔时间（5 分钟）
+    task_trigger.Enabled = True                           # 启用触发器
+
+    # 创建一个操作（执行 rpaserver.exe 程序）
+    action = task_def.Actions.Create(0)
+    action.ID = 'RPAServer'
+    action.Path = 'C:\\path\\to\\rpaserver.exe'
+
+    # 注册任务到计划任务程序
+    folder.RegisterTaskDefinition('RPAserver', task_def, 6, '', '', 2)
