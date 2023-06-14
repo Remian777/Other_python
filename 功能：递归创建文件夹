@@ -1,0 +1,13 @@
+# import os
+
+# def make_sure_path_exists(path):
+#     """
+#     确保给定路径上的文件夹存在，如果不存在则创建
+#     """
+#     directory = os.path.dirname(path)
+#     if not os.path.exists(directory):
+#         os.makedirs(directory)
+
+# # 示例用法
+# path = "C:/example/folder/file.txt"
+# make_sure_path_exists(path)
