@@ -1,0 +1,117 @@
+import os
+basepath = os.getcwd()
+
+# 导入所需库
+import tkinter as tk
+import win32gui
+import win32con
+from win32api import GetModuleHandle
+from win32gui import CreatePopupMenu, AppendMenu, TrackPopupMenu, DestroyMenu
+
+# 定义图标文件路径
+ICON_PATH = r"C:\Users\test\Desktop\RPA\dist\icologo.ico"  # 请替换为实际的图标文件路径
+
+class App(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("My App")
+
+        # 创建系统托盘图标
+        self.create_tray_icon()
+
+        # 最小化时将窗口隐藏到系统托盘
+        self.protocol("WM_DELETE_WINDOW", self.minimize_to_tray)
+
+    # 创建托盘图标的方法
+    def create_tray_icon(self):
+        
+        # 定义消息映射字典
+        message_map = {
+            win32con.WM_DESTROY: self.on_destroy,
+            win32con.WM_COMMAND: self.on_command,
+            win32con.WM_USER + 20: self.on_notify
+        }
+
+        # 初始化窗口类
+        wc = win32gui.WNDCLASS()
+        wc.hInstance = GetModuleHandle(None)
+        wc.lpszClassName = 'MyTaskbar'
+        wc.lpfnWndProc = message_map
+
+        # 注册窗口类并创建窗口
+        class_atom = win32gui.RegisterClass(wc)
+        self.hwnd = win32gui.CreateWindowEx(0, class_atom, wc.lpszClassName, 0, 0, 0, 0, 0, 0, 0, wc.hInstance, None)
+
+        # 加载图标
+        icon_flags = win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE
+        self.hicon = win32gui.LoadImage(0, ICON_PATH, win32con.IMAGE_ICON, 0, 0, icon_flags)
+
+        # 设置托盘图标并添加到系统托盘
+        flags = win32gui.NIF_ICON | win32gui.NIF_MESSAGE | win32gui.NIF_TIP
+        nid = (self.hwnd, 0, flags, win32con.WM_USER + 20, self.hicon, "My Tray Icon")
+        win32gui.Shell_NotifyIcon(win32gui.NIM_ADD, nid)
+
+    # 最小化到系统托盘的方法
+    def minimize_to_tray(self):
+        self.withdraw()
+        nid = (self.hwnd, 0)
+        win32gui.Shell_NotifyIcon(win32gui.NIM_MODIFY, nid)
+
+    # 处理WM_DESTROY消息的方法
+    def on_destroy(self, hwnd, msg, wparam, lparam):
+        # 删除托盘图标
+        nid = (hwnd, 0)
+        win32gui.Shell_NotifyIcon(win32gui.NIM_DELETE, nid)
+        win32gui.PostQuitMessage(0)
+        return 0
+
+    # 处理通知区域图标的消息的方法
+    def on_notify(self, hwnd, msg, wparam, lparam):
+        if lparam == win32con.WM_LBUTTONUP:
+            # 左键单击时显示窗口
+            self.show_window()
+        elif lparam == win32con.WM_RBUTTONUP:
+            # 右键单击时显示上下文菜单
+            self.show_context_menu()
+        return 0
+
+    # 显示窗口的方法
+    def show_window(self):
+        self.deiconify()
+        self.lift()
+
+    # 显示上下文菜单的方法
+    def show_context_menu(self):
+        # 创建上下文菜单
+        menu = CreatePopupMenu()
+
+        AppendMenu(menu, win32con.MF_STRING, 1024, "显示主菜单")
+        AppendMenu(menu, win32con.MF_SEPARATOR, 0, '')
+        AppendMenu(menu, win32con.MF_STRING, 1025, "退出")
+
+        # 在鼠标位置显示上下文菜单
+        pos = win32gui.GetCursorPos()
+        win32gui.SetForegroundWindow(self.hwnd)
+        win32gui.TrackPopupMenu(menu, win32con.TPM_LEFTALIGN, pos[0], pos[1], 0, self.hwnd, None)
+        win32gui.PostMessage(self.hwnd, win32con.WM_NULL, 0, 0)
+
+        # 销毁菜单
+        DestroyMenu(menu)
+
+    # 处理WM_COMMAND消息的方法
+    def on_command(self, hwnd, msg, wparam, lparam):
+        id = win32gui.LOWORD(wparam)
+        if id == 1024:
+            # 点击“Edit Menu”时显示窗口并输出提示信息
+            self.show_window()
+            print("Edit Menu clicked")
+        elif id == 1025:
+            # 点击“Exit”时销毁窗口并退出程序
+            win32gui.DestroyWindow(self.hwnd)
+            self.destroy()
+        return 0
+
+# 主程序入口
+if __name__ == "__main__":
+    app = App()
+    app.mainloop()
