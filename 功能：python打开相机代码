@@ -1,0 +1,8 @@
+# 打开相机函数（python）
+def openCameraP():
+    r_num = 8
+    tokens = ''.join(random.sample(string.digits,r_num))
+    cap = cv2.VideoCapture(0,cv2.CAP_DSHOW)           # 开启摄像头
+    f, frame = cap.read()               # 将摄像头中的一帧图片数据保存
+    cv2.imwrite(fr"D:\RPA_file\imge_save\photo_{tokens}.jpg", frame)     # 将图片保存为本地文件
+    cap.release()
